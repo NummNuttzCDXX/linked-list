@@ -1,0 +1,17 @@
+{
+  "name": "linked-list",
+  "version": "1.0.0",
+  "description": "TOP Assignment demonstrating creation and implementation of linked lists in Javascript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npx webpack --watch --mode development"
+  },
+  "keywords": [],
+  "author": "BBirdy",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.47.0",
+    "eslint-config-google": "^0.14.0"
+  }
+}
