@@ -1,6 +1,7 @@
 // Data Structures: Linked Lists
 // Start: 8/17/23, Midnight
 
+const isEqual = require('lodash.isequal');
 
 /**
  * Class for constructing Linked Lists
@@ -99,6 +100,11 @@ class LinkedList {
 
 		let node = this.head.next;
 		for (let i = 1; i < this.size; i++) {
+			// If both are Objects, check if equal
+			if (node.value instanceof Object && value instanceof Object) {
+				if (isEqual(node.value, value)) return true;
+			}
+
 			if (node.value == value) {
 				return true;
 			} else {
@@ -121,10 +127,9 @@ class LinkedList {
 		let node = this.head.next; // Save next
 		// Loop through nodes
 		for (let index = 1; index < this.size; index++) {
-			// If values are both Arrays || Objects
-			if (value instanceof Array && node.value instanceof Array ||
-				value instanceof Object && node.value instanceof Object) {
-				if (this.#_checkEqual(value, node.value)) return index;
+			// If both are objects, check if node and value are equal
+			if (node.value instanceof Object && value instanceof Object) {
+				if (isEqual(node.value, value)) return index;
 			}
 
 			if (node.value == value) return index; // Check next
@@ -135,44 +140,57 @@ class LinkedList {
 		return null; // If not found, return null
 	};
 
-	// Private
 	/**
-	 * Check if 2 objects are equal/contain the same values
-	 * @param {Array | Object} obj1 - Object1 to check
-	 * @param {Array | Object} obj2 - Object2 to check
-	 * @return {boolean}
+	 * Turn list values into a string
+	 * @return {string} String of all values
 	 */
-	#_checkEqual = (obj1, obj2) => {
-		// If they point to the same instance of the array
-		if (obj1 === obj2) {
-			return true;
+	toString = () => {
+		let string = `( ${JSON.stringify(this.head.value)} ) `;
+
+		let node = this.head.next;
+		for (let i = 1; i <= this.size; i++) {
+			if (node === null) {
+				string += `-> null`;
+				break;
+			}
+
+			string += `-> ( ${JSON.stringify(node.value)} ) `;
+			node = node.next;
 		}
 
-		// If they point to the same instance of date
-		if (obj1 instanceof Date && obj2 instanceof Date) {
-			return obj1.getTime() === obj2.getTime();
-		}
+		return string;
+	};
 
-		// If both of them are not null and their type is not an object
-		// eslint-disable-next-line max-len
-		if (!obj1 || !obj2 || (typeof obj1 !== 'object' && typeof obj2 !== 'object')) {
-			return obj1 === obj2;
-		}
+	/**
+	 * Insert a value at the specified index
+	 * @param {any} value - Value to insert
+	 * @param {number} index - Index of list to insert at
+	 *
+	 * @return {Object} Newly created `Node`
+	 */
+	insertAt = (value, index) => {
+		const node = new Node(value); // Create new Node
 
-		// This means the elements are objects
-		// If they are not the same type of objects
-		if (obj1.prototype !== obj2.prototype) {
-			return false;
-		}
+		// Old node at `index` needs to be connected to new node
+		node.next = this.at(index);
 
-		// Check if both of the objects have the same number of keys
-		const keys = Object.keys(obj1);
-		if (keys.length !== Object.keys(obj2).length) {
-			return false;
-		}
+		// New node needs to be connected to Node at previous index
+		this.at(index - 1).next = node;
 
-		// Check recursively for every key in both
-		return keys.every((k) => this.#_checkEqual(obj1[k], obj2[k]));
+		return node;
+	};
+
+	/**
+	 * Remove a `Node` at the given `index`
+	 * @param {number} index - Index of `Node` to be removed
+	 *
+	 * @return {Object} Removed `Node`'s value
+	 */
+	removeAt = (index) => {
+		const previous = this.at(index - 1); // Get previous Node
+		const removed = previous.next; // Get Node to be removed
+		previous.next = previous.next.next; // Connect previous with upcoming Node
+		return removed.value; // Return removed node's value
 	};
 }
 
@@ -204,13 +222,36 @@ list.prepend('new head'); // 0
 
 list.append('test2'); // 4
 list.append('Find me'); // 5
-// console.log(list.contains('Find me')); // => true
+console.log(list.contains('Find me')); // => true
 
 list.append(['T', 'e', 's', 't', 3]); // 6
-// console.log(list.find(['T', 'e', 's', 't', 3])); // => 6
+console.log(list.find(['T', 'e', 's', 't', 3])); // => 6
 
 list.append('Delete me');
 list.pop(); // Delete 7 ^^
 
 list.append({test: [1, 2, 3], test2: 'hello', test3: 23}); // New 7
-// console.log(list.find({test: [1, 2, 3], test2: 'hello', test3: 23})); // => 7
+console.log(list.find({test: [1, 2, 3], test2: 'hello', test3: 23})); // => 7
+
+console.log(list.toString());
+/*
+	( "new head" ) -> ( [1,2,3] ) -> ( "hello" ) ->
+	( "test" ) -> ( "test2" ) -> ( "Find me" ) ->
+	( ["T","e","s","t",3] ) -> ( {"test":[1,2,3],"test2":"hello","test3":23} )
+	-> null
+*/
+
+list.insertAt('Inserted', 5);
+console.log(list.at(4));
+/*
+	{
+		value: 'test2',
+		next: Node {
+			value: 'Inserted',
+			next: Node { value: 'Find me', next: [Node] }
+		}
+	}
+*/
+
+list.removeAt(5);
+console.log(list.at(5)); // => Node {value: 'Find me', next: ...}
